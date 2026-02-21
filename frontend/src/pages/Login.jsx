@@ -3,8 +3,17 @@ import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import '../styles/auth.css'
 
+function getRoleRedirect(role) {
+  switch (role) {
+    case 'Dispatcher': return '/trips'
+    case 'Safety Officer': return '/maintenance'
+    case 'Financial Analyst': return '/analytics'
+    default: return '/dashboard'
+  }
+}
+
 export default function Login() {
-  const [form, setForm] = useState({ email: '', password: '', role: 'Dispatcher' })
+  const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
@@ -32,7 +41,10 @@ export default function Login() {
       const res = await api.post('/auth/login', { email: form.email, password: form.password })
       localStorage.setItem('token', res.data.token)
       if (res.data.role) localStorage.setItem('role', res.data.role)
-      navigate('/dashboard')
+      if (res.data.user?.email) localStorage.setItem('email', res.data.user.email)
+
+      // Role-based redirect
+      navigate(getRoleRedirect(res.data.role))
     } catch (err) {
       setError(err.response?.data?.message || err.message)
     } finally {
@@ -47,7 +59,7 @@ export default function Login() {
         <div className="auth-inner">
           <div className="brand">
             <div className="logo" aria-hidden>
-              <svg width="20" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 13h12v-4H3v4zM17 9h3l1 2v4h-4V9zM6 17a2 2 0 100 4 2 2 0 000-4zm12 0a2 2 0 100 4 2 2 0 000-4z" fill="#081124"/></svg>
+              <svg width="20" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 13h12v-4H3v4zM17 9h3l1 2v4h-4V9zM6 17a2 2 0 100 4 2 2 0 000-4zm12 0a2 2 0 100 4 2 2 0 000-4z" fill="#081124" /></svg>
             </div>
             <div className="title">FLEET<span className="accent">FLOW</span></div>
           </div>
@@ -66,16 +78,6 @@ export default function Login() {
               <input className="input" name="password" type="password" value={form.password} onChange={onChange} />
             </div>
 
-            <div className="form-field">
-              <div className="label">Role</div>
-              <select className="select" name="role" value={form.role} onChange={onChange}>
-                <option>Manager</option>
-                <option>Dispatcher</option>
-                <option>Safety Officer</option>
-                <option>Financial Analyst</option>
-              </select>
-            </div>
-
             <div className="muted-row">
               <div style={{ color: 'var(--muted)', fontSize: 13 }} />
               <a className="forgot" href="#">Forgot Password?</a>
@@ -89,6 +91,10 @@ export default function Login() {
               </button>
             </div>
           </form>
+
+          <div style={{ marginTop: 12 }}>
+            <small style={{ color: 'var(--muted)' }}>Don't have an account? <a href="/register">Register</a></small>
+          </div>
 
           <div className="footer-note">🔒 Role-based access enforced · All data encrypted in transit</div>
         </div>
