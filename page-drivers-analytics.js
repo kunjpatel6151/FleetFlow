@@ -12,9 +12,11 @@ function renderDriverCards() {
   return DB.drivers.map(d => {
     const expiring = isExpiringSoon(d.expiry);
     const expired = isExpired(d.expiry);
-    const days = daysUntil(d.expiry);
-    const completionRate = Math.round((d.tripsCompleted / d.totalTrips) * 100);
-    const scoreColor = d.safetyScore >= 80 ? 'var(--green)' : d.safetyScore >= 60 ? 'var(--amber)' : 'var(--red)';
+    const total = d.totalTrips || 0;
+    const completed = d.tripsCompleted || 0;
+    const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+    const score = d.safetyScore || 0;
+    const scoreColor = score >= 80 ? 'var(--green)' : score >= 60 ? 'var(--amber)' : 'var(--red)';
     return `<div class="driver-card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
         <div class="driver-avatar">${d.name.split(' ').map(n => n[0]).join('')}</div>
@@ -97,9 +99,9 @@ function renderAnalytics() {
       <p>Financial Reports are restricted to Managers and Financial Analysts</p>
     </div>`;
   }
-  const totalRevenue = DB.trips.filter(t => t.status === 'Completed').reduce((s, t) => s + t.revenue, 0);
-  const totalFuel = DB.fuel.reduce((s, f) => s + f.liters * f.costPerLiter, 0);
-  const totalMaint = DB.maintenance.reduce((s, m) => s + m.cost, 0);
+  const totalRevenue = DB.trips.filter(t => t.status === 'Completed').reduce((s, t) => s + (t.revenue || 0), 0);
+  const totalFuel = DB.fuel.reduce((s, f) => s + (f.liters * f.costPerLiter || 0), 0);
+  const totalMaint = DB.maintenance.reduce((s, m) => s + (m.cost || 0), 0);
   const netProfit = totalRevenue - totalFuel - totalMaint;
   return `
     <div class="section-header">
@@ -160,10 +162,11 @@ function renderAnalytics() {
 function renderROITable() {
   return DB.vehicles.map(v => {
     const vTrips = DB.trips.filter(t => t.vehicleId === v.id && t.status === 'Completed');
-    const rev = vTrips.reduce((s, t) => s + t.revenue, 0);
-    const fuel = DB.fuel.filter(f => f.vehicleId === v.id).reduce((s, f) => s + f.liters * f.costPerLiter, 0);
-    const maint = DB.maintenance.filter(m => m.vehicleId === v.id).reduce((s, m) => s + m.cost, 0);
-    const roi = v.acquisitionCost > 0 ? ((rev - (maint + fuel)) / v.acquisitionCost * 100) : 0;
+    const rev = vTrips.reduce((s, t) => s + (t.revenue || 0), 0);
+    const fuel = DB.fuel.filter(f => f.vehicleId === v.id).reduce((s, f) => s + (f.liters * f.costPerLiter || 0), 0);
+    const maint = DB.maintenance.filter(m => m.vehicleId === v.id).reduce((s, m) => s + (m.cost || 0), 0);
+    const acquisition = v.acquisitionCost || 0;
+    const roi = acquisition > 0 ? ((rev - (maint + fuel)) / acquisition * 100) : 0;
     const isTop = roi >= 5, isBot = roi < 0;
     const badge = isTop ? '<span class="pill green">⭐ Top</span>' : isBot ? '<span class="pill red">⬇ Low</span>' : '<span class="pill gray">Average</span>';
     const roiColor = roi >= 0 ? 'var(--green)' : 'var(--red)';

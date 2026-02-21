@@ -39,7 +39,9 @@ function renderMaintRows() {
       <td class="td-mono" style="color:var(--amber)">${fmtCurrency(m.cost)}</td>
       <td class="td-mono">${fmtNum(m.odometer)} km</td>
       <td style="font-size:12px;color:var(--text-muted);max-width:180px;white-space:normal">${m.notes}</td>
-      <td>${v ? pillHTML(v.status) : ''}</td>
+      <td>
+        ${v?.status === 'In Shop' ? `<button class="btn btn-sm btn-success" onclick="completeMaintenance('${v.id}')">Release</button>` : pillHTML(v?.status || '')}
+      </td>
     </tr>`;
   }).join('');
 }
@@ -47,21 +49,33 @@ function renderMaintRows() {
 function renderOverdueCards(overdueKm) {
   const cards = DB.vehicles.filter(v => {
     const lastService = DB.maintenance.filter(m => m.vehicleId === v.id).sort((a, b) => b.odometer - a.odometer)[0];
-    return !lastService || (v.odometer - lastService.odometer) > overdueKm;
+    const kmSince = lastService ? (v.odometer - lastService.odometer) : v.odometer;
+    return kmSince > overdueKm;
   });
-  if (!cards.length) return `<div style="color:var(--text-muted);font-size:13px;padding:12px">✅ All vehicles are within service intervals</div>`;
+
+  if (!cards.length) return `<div style="color:var(--text-muted);font-size:13px;padding:12px">✅ All vehicles are within the ${fmtNum(overdueKm)}km service interval</div>`;
+
   return cards.map(v => {
     const lastService = DB.maintenance.filter(m => m.vehicleId === v.id).sort((a, b) => b.odometer - a.odometer)[0];
-    const kmSince = lastService ? fmtNum(v.odometer - lastService.odometer) : 'No record';
-    return `<div class="card" style="border-color:rgba(239,68,68,0.3)">
+    const kmSince = lastService ? (v.odometer - lastService.odometer) : v.odometer;
+    const dueIn = Math.max(0, overdueKm - kmSince);
+    const isCritical = kmSince > (overdueKm * 1.5);
+
+    return `<div class="card" style="border-left:4px solid ${isCritical ? 'var(--red)' : 'var(--amber)'}">
       <div class="card-body" style="padding:14px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <strong>${v.name}</strong>
-          <span class="warning-badge">⚠ OVERDUE</span>
+          <strong style="font-size:15px">${v.name}</strong>
+          <span class="pill ${isCritical ? 'red' : 'amber'}">${isCritical ? 'CRITICAL' : 'DUE'}</span>
         </div>
-        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">${v.plate} · ${v.type}</div>
-        <div style="font-size:12px;color:var(--red);margin-top:8px">Km since last service: <strong>${kmSince}</strong></div>
-        <button class="btn btn-sm btn-amber" style="margin-top:10px;width:100%" onclick="openModal('add-maint-modal')">Schedule Service</button>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-bottom:10px">${v.plate} · ${v.type}</div>
+        <div class="driver-stat"><label>Service Interval</label><span>${fmtNum(kmSince)} / ${fmtNum(overdueKm)} km</span></div>
+        <div class="progress-wrap" style="height:6px;margin:8px 0">
+          <div class="progress-fill ${isCritical ? 'progress-red' : 'progress-amber'}" style="width:${Math.min(100, (kmSince / overdueKm) * 100)}%"></div>
+        </div>
+        <div style="font-size:12px;color:${isCritical ? 'var(--red)' : 'var(--text-secondary)'};">
+          ${lastService ? `Last service at ${fmtNum(lastService.odometer)} km` : '<strong>No service history on record</strong>'}
+        </div>
+        <button class="btn btn-sm btn-amber" style="margin-top:12px;width:100%" onclick="openModal('add-maint-modal')">Schedule Maintenance</button>
       </div>
     </div>`;
   }).join('');
@@ -108,15 +122,28 @@ function renderFuel() {
 }
 
 function renderFuelCards(fuelByVehicle) {
-  return DB.vehicles.slice(0, 5).map(v => {
+  // Show vehicles with highest OpEx first
+  const sorted = [...DB.vehicles].sort((a, b) => {
+    const totalA = (fuelByVehicle[a.id]?.fuelCost || 0) + (fuelByVehicle[a.id]?.maintCost || 0);
+    const totalB = (fuelByVehicle[b.id]?.fuelCost || 0) + (fuelByVehicle[b.id]?.maintCost || 0);
+    return totalB - totalA;
+  });
+
+  return sorted.slice(0, 10).map(v => {
     const data = fuelByVehicle[v.id] || { fuelCost: 0, maintCost: 0 };
     const total = data.fuelCost + data.maintCost;
     return `<div class="fuel-card">
-      <div class="fuel-card-name">${v.name} ${pillHTML(v.status)}</div>
+      <div class="fuel-card-name" style="display:flex;justify-content:space-between;align-items:center">
+        <span>${v.name}</span>
+        ${pillHTML(v.status)}
+      </div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin:4px 0 10px 0">${v.plate}</div>
       <div class="fuel-breakdown">
         <div class="fuel-line"><span>Fuel Cost</span><span>${fmtCurrency(data.fuelCost)}</span></div>
         <div class="fuel-line"><span>Maintenance</span><span>${fmtCurrency(data.maintCost)}</span></div>
-        <div class="fuel-total-line"><span>Total OpEx</span><span>${fmtCurrency(total)}</span></div>
+        <div class="fuel-total-line" style="border-top:1px solid var(--border);padding-top:8px;margin-top:8px;font-weight:700;color:var(--amber)">
+          <span>Total OpEx</span><span>${fmtCurrency(total)}</span>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -157,4 +184,12 @@ function calcFuelTotal() {
   const c = parseFloat(document.getElementById('f-cpl').value) || 0;
   const el = document.getElementById('f-total');
   if (el) el.textContent = `Total: ${fmtCurrency(l * c)}`;
+}
+
+function completeMaintenance(vehicleId) {
+  API.updateVehicle(vehicleId, { status: 'Active' })
+    .then(() => {
+      showToast('Vehicle released from shop', 'green');
+      loadDataFromBackend();
+    }).catch(err => showToast(err.message, 'red'));
 }
