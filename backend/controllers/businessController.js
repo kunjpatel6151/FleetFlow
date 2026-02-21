@@ -129,14 +129,14 @@ exports.seedData = async (req, res) => {
         if (vCount > 0 || dCount > 0) return res.json({ message: 'Data already exists, skipping seed' });
 
         const vehicles = await Vehicle.insertMany([
-            { name: 'Iron Rhino', plate: 'TRK-4821', type: 'Truck', capacity: 8000, odometer: 142500, status: 'Active', acquisitionCost: 85000 },
-            { name: 'Blaze Runner', plate: 'TRK-3310', type: 'Truck', capacity: 10000, odometer: 98200, status: 'On Trip', acquisitionCost: 92000 },
-            { name: 'Swift Cargo', plate: 'VAN-7741', type: 'Van', capacity: 2500, odometer: 67800, status: 'Active', acquisitionCost: 38000 },
-            { name: 'Night Owl', plate: 'VAN-5502', type: 'Van', capacity: 2800, odometer: 201000, status: 'In Shop', acquisitionCost: 42000 },
-            { name: 'Delta Express', plate: 'TRK-9902', type: 'Truck', capacity: 12000, odometer: 55000, status: 'Active', acquisitionCost: 110000 },
-            { name: 'Quicksilver', plate: 'BKE-1102', type: 'Bike', capacity: 150, odometer: 18200, status: 'Idle', acquisitionCost: 8000 },
-            { name: 'Storm Hauler', plate: 'TRK-6631', type: 'Truck', capacity: 9000, odometer: 177000, status: 'Active', acquisitionCost: 78000 },
-            { name: 'Falcon Van', plate: 'VAN-4490', type: 'Van', capacity: 3000, odometer: 130400, status: 'Suspended', acquisitionCost: 45000 },
+            { name: 'Iron Rhino', plate: 'TRK-4821', type: 'Truck', capacity: 8000, odometer: 142500, status: 'Active', acquisitionCost: 7055000 },
+            { name: 'Blaze Runner', plate: 'TRK-3310', type: 'Truck', capacity: 10000, odometer: 98200, status: 'On Trip', acquisitionCost: 7636000 },
+            { name: 'Swift Cargo', plate: 'VAN-7741', type: 'Van', capacity: 2500, odometer: 67800, status: 'Active', acquisitionCost: 3154000 },
+            { name: 'Night Owl', plate: 'VAN-5502', type: 'Van', capacity: 2800, odometer: 201000, status: 'In Shop', acquisitionCost: 3486000 },
+            { name: 'Delta Express', plate: 'TRK-9902', type: 'Truck', capacity: 12000, odometer: 55000, status: 'Active', acquisitionCost: 9130000 },
+            { name: 'Quicksilver', plate: 'BKE-1102', type: 'Bike', capacity: 150, odometer: 18200, status: 'Idle', acquisitionCost: 664000 },
+            { name: 'Storm Hauler', plate: 'TRK-6631', type: 'Truck', capacity: 9000, odometer: 177000, status: 'Active', acquisitionCost: 6474000 },
+            { name: 'Falcon Van', plate: 'VAN-4490', type: 'Van', capacity: 3000, odometer: 130400, status: 'Suspended', acquisitionCost: 3735000 },
         ]);
         const drivers = await Driver.insertMany([
             { name: 'Marcus Chen', license: 'LIC-4821-A', expiry: '2026-08-15', category: 'Heavy', status: 'On Duty', safetyScore: 92, tripsCompleted: 148, totalTrips: 155 },
@@ -147,22 +147,22 @@ exports.seedData = async (req, res) => {
             { name: 'Anya Volkov', license: 'LIC-1102-F', expiry: '2026-11-05', category: 'Motorcycle', status: 'Off Duty', safetyScore: 88, tripsCompleted: 67, totalTrips: 70 },
         ]);
         await Trip.insertMany([
-            { vehicleId: vehicles[1]._id, driverId: drivers[0]._id, cargo: 7500, origin: 'Chicago, IL', destination: 'Detroit, MI', date: '2026-02-18', status: 'Dispatched', revenue: 2400 },
-            { vehicleId: vehicles[2]._id, driverId: drivers[2]._id, cargo: 1800, origin: 'Los Angeles, CA', destination: 'Phoenix, AZ', date: '2026-02-17', status: 'Completed', revenue: 980 },
-            { vehicleId: vehicles[0]._id, driverId: drivers[4]._id, cargo: 6000, origin: 'Dallas, TX', destination: 'Houston, TX', date: '2026-02-20', status: 'Draft', revenue: 1200 },
-            { vehicleId: vehicles[4]._id, driverId: drivers[1]._id, cargo: 11000, origin: 'New York, NY', destination: 'Boston, MA', date: '2026-02-16', status: 'Completed', revenue: 3100 },
-            { vehicleId: vehicles[6]._id, driverId: drivers[0]._id, cargo: 4500, origin: 'Miami, FL', destination: 'Orlando, FL', date: '2026-02-19', status: 'Dispatched', revenue: 1500 },
+            { vehicleId: vehicles[1]._id, driverId: drivers[0]._id, cargo: 7500, origin: 'Chicago, IL', destination: 'Detroit, MI', date: '2026-02-18', status: 'Dispatched', revenue: 199200 },
+            { vehicleId: vehicles[2]._id, driverId: drivers[2]._id, cargo: 1800, origin: 'Los Angeles, CA', destination: 'Phoenix, AZ', date: '2026-02-17', status: 'Completed', revenue: 81340 },
+            { vehicleId: vehicles[0]._id, driverId: drivers[4]._id, cargo: 6000, origin: 'Dallas, TX', destination: 'Houston, TX', date: '2026-02-20', status: 'Draft', revenue: 99600 },
+            { vehicleId: vehicles[4]._id, driverId: drivers[1]._id, cargo: 11000, origin: 'New York, NY', destination: 'Boston, MA', date: '2026-02-16', status: 'Completed', revenue: 257300 },
+            { vehicleId: vehicles[6]._id, driverId: drivers[0]._id, cargo: 4500, origin: 'Miami, FL', destination: 'Orlando, FL', date: '2026-02-19', status: 'Dispatched', revenue: 124500 },
         ]);
         await Maintenance.insertMany([
-            { vehicleId: vehicles[3]._id, type: 'Engine Overhaul', date: '2026-02-10', cost: 4200, notes: 'Full engine rebuild', odometer: 200900 },
-            { vehicleId: vehicles[0]._id, type: 'Oil Change', date: '2026-01-25', cost: 180, notes: 'Synthetic 5W-40', odometer: 140000 },
-            { vehicleId: vehicles[6]._id, type: 'Brake Replacement', date: '2026-02-05', cost: 890, notes: 'All rotors replaced', odometer: 175000 },
+            { vehicleId: vehicles[3]._id, type: 'Engine Overhaul', date: '2026-02-10', cost: 348600, notes: 'Full engine rebuild', odometer: 200900 },
+            { vehicleId: vehicles[0]._id, type: 'Oil Change', date: '2026-01-25', cost: 14940, notes: 'Synthetic 5W-40', odometer: 140000 },
+            { vehicleId: vehicles[6]._id, type: 'Brake Replacement', date: '2026-02-05', cost: 73870, notes: 'All rotors replaced', odometer: 175000 },
         ]);
         await Fuel.insertMany([
-            { vehicleId: vehicles[1]._id, liters: 320, costPerLiter: 1.42, date: '2026-02-18', odometer: 98200 },
-            { vehicleId: vehicles[2]._id, liters: 85, costPerLiter: 1.38, date: '2026-02-17', odometer: 67800 },
-            { vehicleId: vehicles[0]._id, liters: 210, costPerLiter: 1.45, date: '2026-02-15', odometer: 142000 },
-            { vehicleId: vehicles[4]._id, liters: 280, costPerLiter: 1.40, date: '2026-02-16', odometer: 54500 },
+            { vehicleId: vehicles[1]._id, liters: 320, costPerLiter: 105.72, date: '2026-02-18', odometer: 98200 },
+            { vehicleId: vehicles[2]._id, liters: 85, costPerLiter: 105.72, date: '2026-02-17', odometer: 67800 },
+            { vehicleId: vehicles[0]._id, liters: 210, costPerLiter: 105.72, date: '2026-02-15', odometer: 142000 },
+            { vehicleId: vehicles[4]._id, liters: 280, costPerLiter: 105.72, date: '2026-02-16', odometer: 54500 },
         ]);
         res.json({ message: '✅ Database seeded successfully', vehicles: vehicles.length, drivers: drivers.length });
     } catch (e) { res.status(500).json({ message: e.message }); }
