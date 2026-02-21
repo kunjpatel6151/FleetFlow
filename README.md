@@ -355,6 +355,8 @@ This project is for educational and demonstration purposes.
 
 ---
 
+Video link : https://youtu.be/1_pp7WsdYzw
+
 <p align="center">
   Built with ❤️ using Node.js, Express, MongoDB, Three.js & Chart.js
 </p>
