@@ -11,7 +11,7 @@ function renderVehicles() {
           <span class="search-icon">${svgIcon('search')}</span>
           <input class="search-input" id="veh-search" placeholder="Search vehicles..." oninput="filterVehicles()" />
         </div>
-        <button class="btn btn-amber" onclick="openModal('add-vehicle-modal')">${svgIcon('plus')} Add Vehicle</button>
+        ${canCreate() ? `<button class="btn btn-amber" onclick="openModal('add-vehicle-modal')">${svgIcon('plus')} Add Vehicle</button>` : ''}
       </div>
     </div>
     <div class="card">
@@ -137,7 +137,7 @@ function renderTrips() {
   return `
     <div class="section-header">
       <div><div class="section-title">TRIP DISPATCHER</div><div class="section-subtitle">Manage and dispatch cargo trips</div></div>
-      <button class="btn btn-amber" onclick="openModal('add-trip-modal')">${svgIcon('plus')} New Trip</button>
+      ${canCreate() ? `<button class="btn btn-amber" onclick="openModal('add-trip-modal')">${svgIcon('plus')} New Trip</button>` : ''}
     </div>
     <div class="card" style="margin-bottom:20px;">
       <div class="card-header"><span class="card-title">ACTIVE TRIPS</span>

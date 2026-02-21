@@ -4,7 +4,7 @@ function renderMaintenance() {
   return `
     <div class="section-header">
       <div><div class="section-title">MAINTENANCE & SERVICE LOGS</div><div class="section-subtitle">Track service history and vehicle health</div></div>
-      <button class="btn btn-amber" onclick="openModal('add-maint-modal')">${svgIcon('plus')} Log Service</button>
+      ${canCreate() ? `<button class="btn btn-amber" onclick="openModal('add-maint-modal')">${svgIcon('plus')} Log Service</button>` : ''}
     </div>
     <div class="stat-row">
       <div class="stat-mini"><div class="stat-mini-label">Total Services</div><div class="stat-mini-value">${DB.maintenance.length}</div></div>
@@ -107,7 +107,7 @@ function renderFuel() {
   return `
     <div class="section-header">
       <div><div class="section-title">EXPENSES & FUEL LOGGING</div><div class="section-subtitle">Per-vehicle operational cost tracking</div></div>
-      <button class="btn btn-amber" onclick="openModal('add-fuel-modal')">${svgIcon('plus')} Log Fuel Entry</button>
+      ${canCreate() ? `<button class="btn btn-amber" onclick="openModal('add-fuel-modal')">${svgIcon('plus')} Log Fuel Entry</button>` : ''}
     </div>
     <div class="fuel-summary-grid" id="fuel-summary">${renderFuelCards(fuelByVehicle)}</div>
     <div class="section-header"><div class="section-title">FUEL LOG</div></div>

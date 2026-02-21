@@ -59,7 +59,7 @@ function renderDashboard() {
           <div class="card-header"><span class="card-title">FLEET MAP</span><span class="pill green">Live</span></div>
           <div class="map-placeholder" id="fleet-map" style="padding:0;overflow:hidden;position:relative;">
             <canvas id="globe-canvas" style="width:100%;height:100%;display:block;"></canvas>
-            <div style="position:absolute;top:10px;left:12px;font-family:var(--font-mono);font-size:10px;color:var(--amber);letter-spacing:1.5px;z-index:2;pointer-events:none;">◉ LIVE · 7 VEHICLES TRACKED</div>
+            <div id="fleet-map-label" style="position:absolute;top:10px;left:12px;font-family:var(--font-mono);font-size:10px;color:var(--amber);letter-spacing:1.5px;z-index:2;pointer-events:none;">◉ LIVE · ${DB.vehicles.length} VEHICLES TRACKED</div>
             <div style="position:absolute;bottom:10px;right:12px;font-family:var(--font-mono);font-size:9px;color:var(--text-muted);z-index:2;pointer-events:none;">drag to rotate</div>
           </div>
         </div>
@@ -127,18 +127,14 @@ function initDashboardKPIs() {
 }
 
 function initMapDots() {
+  // The 3D globe in three-effects.js already renders geo-positioned vehicle pins.
+  // This function just updates the overlay label with real vehicle count.
   const map = document.getElementById('fleet-map'); if (!map) return;
+  // Remove any leftover 2D dots from previous renders
   map.querySelectorAll('.vehicle-map-dot').forEach(d => d.remove());
-  DB.vehicles.forEach((v, idx) => {
-    const dot = document.createElement('div');
-    dot.className = 'vehicle-map-dot';
-    const x = 15 + ((idx * 23) % 70);
-    const y = 20 + ((idx * 17) % 65);
-    const color = pillClass(v.status) === 'green' ? 'var(--green)' :
-      pillClass(v.status) === 'amber' ? 'var(--amber)' :
-        pillClass(v.status) === 'red' ? 'var(--red)' : 'var(--gray)';
-    dot.setAttribute('data-tip', `${v.name} · ${v.status}`);
-    dot.style.cssText = `left:${x}%;top:${y}%;background:${color};box-shadow:0 0 8px ${color}`;
-    map.appendChild(dot);
-  });
+  // Update the live tracker label
+  const liveLabel = document.getElementById('fleet-map-label');
+  if (liveLabel && DB.vehicles.length > 0) {
+    liveLabel.textContent = `◉ LIVE · ${DB.vehicles.length} VEHICLES TRACKED`;
+  }
 }

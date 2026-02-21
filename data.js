@@ -17,7 +17,8 @@ function nextId(prefix, arr) {
   const nums = arr.map(x => parseInt(x.id.replace(prefix + '-', ''))).filter(n => !isNaN(n));
   return prefix + '-' + (Math.max(0, ...nums) + 1).toString().padStart(3, '0');
 }
-function fmtCurrency(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtCurrency(n) { return '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function canCreate() { const r = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.role : ''; return r !== 'Safety Officer' && r !== 'Financial Analyst'; }
 function fmtNum(n) { return Number(n).toLocaleString(); }
 function daysUntil(dateStr) {
   const d = new Date(dateStr), now = new Date('2026-02-21');

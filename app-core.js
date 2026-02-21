@@ -84,8 +84,101 @@ function renderLogin() {
         <button class="btn-primary" id="login-btn" onclick="doLogin()">LOGIN TO FLEETFLOW</button>
         <hr class="login-divider" />
         <div class="login-role-hint">🔐 Role-based access enforced · All data encrypted in transit</div>
+        <div class="login-register-link">
+          Don't have an account? <a href="#" onclick="renderRegister(); setTimeout(initLoginScene, 80); return false;">Create Account</a>
+        </div>
       </div>
     </div>`;
+}
+
+// ─── RENDER REGISTER ───────────────────────────────────────────────────────────
+function renderRegister() {
+  if (typeof destroyLoginScene === 'function') destroyLoginScene();
+  document.getElementById('app').innerHTML = `
+    <div id="login-page">
+      <canvas id="login-canvas" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
+      <div class="login-bg-glow"></div>
+      <div class="login-card">
+        <div class="login-logo-mark">
+          <div class="logo-icon"><svg viewBox="0 0 24 24" fill="currentColor" style="width:22px;height:22px;"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5" fill="#0F1117"/><circle cx="18.5" cy="18.5" r="2.5" fill="#0F1117"/><rect x="1" y="3" width="15" height="13" fill="none" stroke="#0F1117" stroke-width="1.5"/></svg></div>
+          <div class="logo-text">FLEET<span>FLOW</span></div>
+        </div>
+        <div class="login-title">CREATE ACCOUNT</div>
+        <div class="login-subtitle">Register for Fleet & Logistics Management System v2.1</div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input class="form-input" id="reg-email" type="email" placeholder="yourname@company.io" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" id="reg-pass" type="password" placeholder="Min. 6 characters" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <input class="form-input" id="reg-pass-confirm" type="password" placeholder="Re-enter password" />
+          <div class="login-error" id="reg-err">Registration failed.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <select class="form-select" id="reg-role">
+            <option value="Manager">Manager</option>
+            <option value="Dispatcher">Dispatcher</option>
+            <option value="Safety Officer">Safety Officer</option>
+            <option value="Financial Analyst">Financial Analyst</option>
+          </select>
+        </div>
+        <button class="btn-primary" id="reg-btn" onclick="doRegister()">CREATE ACCOUNT</button>
+        <hr class="login-divider" />
+        <div class="login-role-hint">🔐 Role-based access enforced · All data encrypted in transit</div>
+        <div class="login-register-link">
+          Already have an account? <a href="#" onclick="renderLogin(); setTimeout(initLoginScene, 80); return false;">Sign In</a>
+        </div>
+      </div>
+    </div>`;
+}
+
+function doRegister() {
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const passConfirm = document.getElementById('reg-pass-confirm').value;
+  const role = document.getElementById('reg-role').value;
+  const errEl = document.getElementById('reg-err');
+
+  if (!email || !pass || !passConfirm) {
+    errEl.textContent = 'All fields are required.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (pass.length < 6) {
+    errEl.textContent = 'Password must be at least 6 characters.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (pass !== passConfirm) {
+    errEl.textContent = 'Passwords do not match.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  const btn = document.getElementById('reg-btn');
+  btn.textContent = 'CREATING ACCOUNT...'; btn.disabled = true;
+  errEl.classList.remove('show');
+
+  API.register(email, pass, role)
+    .then(data => {
+      localStorage.setItem('ff_token', data.token);
+      localStorage.setItem('ff_user', JSON.stringify(data.user));
+      currentUser = { email: data.user.email, role: data.user.role, initials: data.user.email.slice(0, 2).toUpperCase() };
+      if (typeof destroyLoginScene === 'function') destroyLoginScene();
+      renderApp();
+      API.seed().finally(() => loadDataFromBackend());
+      showToast('Account created successfully! Welcome to FleetFlow.', 'green');
+    })
+    .catch(err => {
+      btn.textContent = 'CREATE ACCOUNT'; btn.disabled = false;
+      errEl.textContent = err.message || 'Registration failed. Please try again.';
+      errEl.classList.add('show');
+    });
 }
 
 function doLogin() {

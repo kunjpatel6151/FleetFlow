@@ -138,13 +138,17 @@ function refreshCurrentPage() {
     if (mc) mc.innerHTML = renderModals();
 
     // Re-run current page specific initialization
-    const page = window.currentPage || 'dashboard';
+    // Note: currentPage is a global `let` in app-core.js, NOT on `window`
+    const page = (typeof currentPage !== 'undefined') ? currentPage : 'dashboard';
     if (page === 'dashboard') {
         initDashboardKPIs();
-        initMapDots();
-        if (typeof initGlobeScene === 'function') initGlobeScene();
+        // Globe canvas was just recreated via innerHTML — must wait for layout
+        setTimeout(() => {
+            if (typeof initGlobeScene === 'function') initGlobeScene();
+            initMapDots();
+        }, 100);
     }
     if (page === 'analytics') {
-        if (typeof initCharts === 'function') initCharts();
+        if (typeof initCharts === 'function') setTimeout(initCharts, 100);
     }
 }

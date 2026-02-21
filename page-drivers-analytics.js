@@ -3,7 +3,7 @@ function renderDrivers() {
   return `
     <div class="section-header">
       <div><div class="section-title">DRIVER PROFILES & SAFETY</div><div class="section-subtitle">${DB.drivers.length} registered drivers</div></div>
-      <button class="btn btn-amber" onclick="openModal('add-driver-modal')">${svgIcon('plus')} Add Driver</button>
+      ${canCreate() ? `<button class="btn btn-amber" onclick="openModal('add-driver-modal')">${svgIcon('plus')} Add Driver</button>` : ''}
     </div>
     <div class="driver-grid" id="driver-grid">${renderDriverCards()}</div>`;
 }
@@ -17,6 +17,7 @@ function renderDriverCards() {
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
     const score = d.safetyScore || 0;
     const scoreColor = score >= 80 ? 'var(--green)' : score >= 60 ? 'var(--amber)' : 'var(--red)';
+    const days = daysUntil(d.expiry);
     return `<div class="driver-card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
         <div class="driver-avatar">${d.name.split(' ').map(n => n[0]).join('')}</div>

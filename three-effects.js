@@ -101,10 +101,11 @@ function initLoginScene() {
 }
 
 // ── 3D Globe Scene ────────────────────────────────────────────────────────────
-let _globeRenderer = null, _globeAnim = null;
+let _globeRenderer = null, _globeAnim = null, _globeCleanup = null;
 
 function destroyGlobeScene() {
     if (_globeAnim) { cancelAnimationFrame(_globeAnim); _globeAnim = null; }
+    if (_globeCleanup) { _globeCleanup(); _globeCleanup = null; }
     if (_globeRenderer) { _globeRenderer.dispose(); _globeRenderer = null; }
 }
 
@@ -112,10 +113,24 @@ function initGlobeScene() {
     if (!window.THREE) return;
     const canvas = document.getElementById('globe-canvas');
     if (!canvas) return;
+    const container = canvas.parentElement;
+    if (!container) return;
     destroyGlobeScene();
 
-    const W = canvas.offsetWidth || 400;
-    const H = canvas.offsetHeight || 260;
+    // Wait for the container to have real dimensions
+    const W = container.clientWidth || 400;
+    const H = container.clientHeight || 260;
+    if (W < 10 || H < 10) {
+        // Container not laid out yet, retry
+        requestAnimationFrame(() => initGlobeScene());
+        return;
+    }
+
+    // Set canvas size explicitly
+    canvas.width = W * Math.min(window.devicePixelRatio, 2);
+    canvas.height = H * Math.min(window.devicePixelRatio, 2);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
@@ -198,7 +213,7 @@ function initGlobeScene() {
         group.add(ring);
     });
 
-    // ── Drag to Rotate ─────────────────────────────────────────────────────────
+    // ── Drag to Rotate (mouse + touch) ────────────────────────────────────────
     let drag = false, lastX = 0, lastY = 0;
     canvas.style.cursor = 'grab';
 
@@ -210,9 +225,21 @@ function initGlobeScene() {
         group.rotation.x += (e.clientY - lastY) * 0.003;
         lastX = e.clientX; lastY = e.clientY;
     };
+    const _ts = e => { if (e.touches.length === 1) { drag = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; } };
+    const _te = () => { drag = false; };
+    const _tmv = e => {
+        if (!drag || !e.touches.length) return;
+        e.preventDefault();
+        group.rotation.y += (e.touches[0].clientX - lastX) * 0.005;
+        group.rotation.x += (e.touches[0].clientY - lastY) * 0.003;
+        lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+    };
     canvas.addEventListener('mousedown', _md);
     window.addEventListener('mouseup', _mu);
     window.addEventListener('mousemove', _mm);
+    canvas.addEventListener('touchstart', _ts, { passive: true });
+    canvas.addEventListener('touchend', _te);
+    canvas.addEventListener('touchmove', _tmv, { passive: false });
 
     // ── Animate ────────────────────────────────────────────────────────────────
     let frame = 0;
@@ -232,12 +259,25 @@ function initGlobeScene() {
     animate();
 
     const _onResize = () => {
-        if (!canvas.isConnected) return;
-        const w = canvas.offsetWidth, h = canvas.offsetHeight;
+        if (!canvas.isConnected || !container.isConnected) return;
+        const w = container.clientWidth, h = container.clientHeight;
         if (!w || !h) return;
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         if (_globeRenderer) _globeRenderer.setSize(w, h);
     };
     window.addEventListener('resize', _onResize);
+
+    // Store cleanup references
+    _globeCleanup = () => {
+        canvas.removeEventListener('mousedown', _md);
+        window.removeEventListener('mouseup', _mu);
+        window.removeEventListener('mousemove', _mm);
+        canvas.removeEventListener('touchstart', _ts);
+        canvas.removeEventListener('touchend', _te);
+        canvas.removeEventListener('touchmove', _tmv);
+        window.removeEventListener('resize', _onResize);
+    };
 }
